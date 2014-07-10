@@ -5,4 +5,5 @@ RUN yum -y upgrade
 RUN yum -y install python-keystoneclient
 
 ADD keystonerc /root/keystonerc
+ADD setup-keystone.sh /root/setup-keystone.sh
 
