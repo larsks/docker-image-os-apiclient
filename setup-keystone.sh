@@ -35,6 +35,9 @@ _keystone user-create --name admin --tenant admin --pass secret >>$logfile
 echo "Assigning admin user to admin role."
 _keystone user-role-add --user admin --role admin --tenant admin >>$logfile
 
+echo "Creating services tenant."
+_keystone tenant-create --name services >> $logfile
+
 cat <<EOF
 
 All done.
