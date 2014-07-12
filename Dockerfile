@@ -9,3 +9,8 @@ ADD setup-keystone.sh /root/setup-keystone.sh
 ADD setup-glance.sh /root/setup-glance.sh
 ADD setup-nova.sh /root/setup-nova.sh
 ADD add-keystone-service.sh /root/add-keystone-service.sh
+
+RUN echo '. $HOME/keystonerc' >> /root/.bash_profile
+
+CMD su - root
+
