@@ -1,0 +1,50 @@
+#!/bin/sh
+
+echo -n 'Starting keystone: '
+docker run -d --name keystone -P larsks/keystone
+keystone_port=$(
+docker inspect --format '{{range $key, $value := .HostConfig.PortBindings}}{{if eq $key "35357/tcp"}}{{with index $value 0}}{{.HostPort}}{{end}}{{end}}{{end}}' keystone
+)
+
+if ! [ "$keystone_port" ]; then
+	echo "ERROR: unable to determine keystone port." >&2
+	exit 1
+fi
+
+echo "waiting for keystone to settle (local port $keystone_port)"
+while ! curl -o /dev/null -s -f http://localhost:$keystone_port; do
+	sleep 1
+done
+
+
+echo -n 'Starting rabbitmq: '
+docker run -d --name rabbitmq larsks/rabbitmq
+echo -n 'Starting glance: '
+docker run -d --name glance \
+	--link keystone:keystone \
+	--link rabbitmq:amqphost \
+	larsks/glance
+echo -n 'Starting nova: '
+docker run -d --name nova \
+	--link keystone:keystone \
+	--link rabbitmq:amqphost \
+	--link glance:glance \
+	larsks/nova-controller
+
+echo 'Initializing keystone.'
+docker run --rm \
+	--link keystone:keystone \
+	--link glance:glance \
+	--link nova:nova \
+	larsks/os-apiclient /bin/sh /root/setup-keystone.sh
+docker run --rm \
+	--link keystone:keystone \
+	--link glance:glance \
+	--link nova:nova \
+	larsks/os-apiclient /bin/sh /root/setup-glance.sh
+docker run --rm \
+	--link keystone:keystone \
+	--link glance:glance \
+	--link nova:nova \
+	larsks/os-apiclient /bin/sh /root/setup-nova.sh
+

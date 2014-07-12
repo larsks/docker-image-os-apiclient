@@ -1,0 +1,13 @@
+#!/bin/sh
+
+docker run --rm \
+	--link keystone:keystone \
+	--link glance:glance \
+	--link nova:nova \
+	--volumes-from nova \
+	--volumes-from keystone \
+	--volumes-from glance \
+	--volumes-from rabbitmq \
+	-it \
+	larsks/os-apiclient
+

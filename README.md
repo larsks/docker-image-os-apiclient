@@ -1,28 +1,42 @@
-Keystone client
-==============
+OpenStack API Client
+====================
 
-This image contains the `keystone` command line client and is meant to
-interact with my [larsks/keystone][] container.
+This image contains various OpenStack command line client tools.  It
+is meant to interact with my OpenStack service images:
 
-[larsks/keystone]: https://registry.hub.docker.com/u/larsks/keystone/
+- [Keystone][]
+- [Glance][]
+- [Nova controller][]
 
-If you have the `larsks/keystone` image running in a container named
-`keystone`, the following will populate the keystone service and
-endpoint entries and then create an `admin` user:
+[keystone]: https://registry.hub.docker.com/u/larsks/keystone/
+[glance]: https://registry.hub.docker.com/u/larsks/glance/
+[nova controller]: https://registry.hub.docker.com/u/larsks/nova-controller/
 
-     $ docker run --rm -it --link keystone:keystone \
-      larsks/keystoneclient sh /root/setup-keystone.sh
-    ======================================================================
-    Initializing keystone
-    ======================================================================
+You will generally want to use Docker's `--link` option to link this
+container to the other services containers.  A typical run would look
+like:
 
-    Creating keystone service.
-    Creating keystone endpoint.
-    Creating admin tenant.
-    Creating admin role.
-    Creating admin user.
-    Assigning admin user to admin role.
+    docker run --rm \
+      --link keystone:keystone \
+      --link glance:glance \
+      --link nova:nova \
+      --volumes-from nova \
+      --volumes-from keystone \
+      --volumes-from glance \
+      --volumes-from rabbitmq \
+      -it \
+      larsks/os-apiclient
 
-    All done.
-    ======================================================================
+The `--volumes-from` argument are not necessary, but they make it
+possible to access logs and databases from within the client.
+
+Convenient scripts
+==================
+
+The `start-openstack-cluster` script, in this repository, will start
+all the service containers.
+
+The `start-openstack-client` script will run the client as described
+above.
+
 
