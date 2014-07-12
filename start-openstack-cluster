@@ -2,17 +2,17 @@
 
 echo -n 'Starting keystone: '
 docker run -d --name keystone -P larsks/keystone
-keystone_port=$(
-docker inspect --format '{{range $key, $value := .HostConfig.PortBindings}}{{if eq $key "35357/tcp"}}{{with index $value 0}}{{.HostPort}}{{end}}{{end}}{{end}}' keystone
+keystone_server=$(
+docker port keystone 35357
 )
 
-if ! [ "$keystone_port" ]; then
-	echo "ERROR: unable to determine keystone port." >&2
+if ! [ "$keystone_server" ]; then
+	echo "ERROR: unable to determine keystone server ip and port" >&2
 	exit 1
 fi
 
-echo "waiting for keystone to settle (local port $keystone_port)"
-while ! curl -o /dev/null -s -f http://localhost:$keystone_port; do
+echo "Waiting for keystone server at $keystone_server to settle."
+while ! curl -o /dev/null -s -f http://$keystone_server; do
 	sleep 1
 done
 
